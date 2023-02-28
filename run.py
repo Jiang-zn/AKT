@@ -4,6 +4,7 @@ import torch
 import math
 from sklearn import metrics
 from utils import model_isPid_type
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 transpose_data_model = {'akt'}
@@ -11,9 +12,9 @@ transpose_data_model = {'akt'}
 
 def binaryEntropy(target, pred, mod="avg"):
     loss = target * np.log(np.maximum(1e-10, pred)) + \
-        (1.0 - target) * np.log(np.maximum(1e-10, 1.0-pred))
+           (1.0 - target) * np.log(np.maximum(1e-10, 1.0 - pred))
     if mod == 'avg':
-        return np.average(loss)*(-1.0)
+        return np.average(loss) * (-1.0)
     elif mod == 'sum':
         return - loss.sum()
     else:
@@ -21,7 +22,7 @@ def binaryEntropy(target, pred, mod="avg"):
 
 
 def compute_auc(all_target, all_pred):
-    #fpr, tpr, thresholds = metrics.roc_curve(all_target, all_pred, pos_label=1.0)
+    # fpr, tpr, thresholds = metrics.roc_curve(all_target, all_pred, pos_label=1.0)
     return metrics.roc_auc_score(all_target, all_pred)
 
 
@@ -31,7 +32,7 @@ def compute_accuracy(all_target, all_pred):
     return metrics.accuracy_score(all_target, all_pred)
 
 
-def train(net, params,  optimizer,  q_data, qa_data, pid_data,  label):
+def train(net, params, optimizer, q_data, qa_data, pid_data, label):
     net.train()
     pid_flag, model_type = model_isPid_type(params.model)
     N = int(math.ceil(len(q_data) / params.batch_size))
@@ -55,13 +56,13 @@ def train(net, params,  optimizer,  q_data, qa_data, pid_data,  label):
     for idx in range(N):
         optimizer.zero_grad()
 
-        q_one_seq = q_data[:, idx*params.batch_size:(idx+1)*params.batch_size]
+        q_one_seq = q_data[:, idx * params.batch_size:(idx + 1) * params.batch_size]
         if pid_flag:
             pid_one_seq = pid_data[:, idx *
-                                   params.batch_size:(idx+1) * params.batch_size]
+                                      params.batch_size:(idx + 1) * params.batch_size]
 
         qa_one_seq = qa_data[:, idx *
-                             params.batch_size:(idx+1) * params.batch_size]
+                                params.batch_size:(idx + 1) * params.batch_size]
 
         if model_type in transpose_data_model:
             input_q = np.transpose(q_one_seq[:, :])  # Shape (bs, seqlen)
@@ -140,13 +141,13 @@ def test(net, params, optimizer, q_data, qa_data, pid_data, label):
     element_count = 0
     for idx in range(N):
 
-        q_one_seq = q_data[:, idx*params.batch_size:(idx+1)*params.batch_size]
+        q_one_seq = q_data[:, idx * params.batch_size:(idx + 1) * params.batch_size]
         if pid_flag:
             pid_one_seq = pid_data[:, idx *
-                                   params.batch_size:(idx+1) * params.batch_size]
+                                      params.batch_size:(idx + 1) * params.batch_size]
         input_q = q_one_seq[:, :]  # Shape (seqlen, batch_size)
         qa_one_seq = qa_data[:, idx *
-                             params.batch_size:(idx+1) * params.batch_size]
+                                params.batch_size:(idx + 1) * params.batch_size]
         input_qa = qa_one_seq[:, :]  # Shape (seqlen, batch_size)
 
         # print 'seq_num', seq_num
@@ -166,7 +167,7 @@ def test(net, params, optimizer, q_data, qa_data, pid_data, label):
                 input_pid = (pid_one_seq[:, :])
         target = (target - 1) / params.n_question
         target_1 = np.floor(target)
-        #target = np.random.randint(0,2, size = (target.shape[0],target.shape[1]))
+        # target = np.random.randint(0,2, size = (target.shape[0],target.shape[1]))
 
         input_q = torch.from_numpy(input_q).long().to(device)
         input_qa = torch.from_numpy(input_qa).long().to(device)
@@ -181,7 +182,7 @@ def test(net, params, optimizer, q_data, qa_data, pid_data, label):
                 loss, pred, ct = net(input_q, input_qa, target)
         pred = pred.cpu().numpy()  # (seqlen * batch_size, 1)
         true_el += ct.cpu().numpy()
-        #target = target.cpu().numpy()
+        # target = target.cpu().numpy()
         if (idx + 1) * params.batch_size > seq_num:
             real_batch_size = seq_num - idx * params.batch_size
             count += real_batch_size

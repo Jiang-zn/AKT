@@ -9,13 +9,15 @@ import torch
 from load_data import DATA, PID_DATA
 from run import train, test
 from utils import try_makedirs, load_model, get_file_name_identifier
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 # assert torch.cuda.is_available(), "No Cuda available, AssertionError"
 
 
-def train_one_dataset(params, file_name, train_q_data, train_qa_data, train_pid, valid_q_data, valid_qa_data, valid_pid):
+def train_one_dataset(params, file_name, train_q_data, train_qa_data, train_pid, valid_q_data, valid_qa_data,
+                      valid_pid):
     # ================================== model initialization ==================================
 
     model = load_model(params)
@@ -36,10 +38,10 @@ def train_one_dataset(params, file_name, train_q_data, train_qa_data, train_pid,
     for idx in range(params.max_iter):
         # Train Model
         train_loss, train_accuracy, train_auc = train(
-            model, params, optimizer, train_q_data, train_qa_data, train_pid,  label='Train')
+            model, params, optimizer, train_q_data, train_qa_data, train_pid, label='Train')
         # Validation step
         valid_loss, valid_accuracy, valid_auc = test(
-            model,  params, optimizer, valid_q_data, valid_qa_data, valid_pid, label='Valid')
+            model, params, optimizer, valid_q_data, valid_qa_data, valid_pid, label='Valid')
 
         print('epoch', idx + 1)
         print("valid_auc\t", valid_auc, "\ttrain_auc\t", train_auc)
@@ -61,21 +63,21 @@ def train_one_dataset(params, file_name, train_q_data, train_qa_data, train_pid,
         # output the epoch with the best validation auc
         if valid_auc > best_valid_auc:
             path = os.path.join('model', params.model,
-                                params.save,  file_name) + '_*'
+                                params.save, file_name) + '_*'
             for i in glob.glob(path):
                 os.remove(i)
             best_valid_auc = valid_auc
-            best_epoch = idx+1
+            best_epoch = idx + 1
             torch.save({'epoch': idx,
                         'model_state_dict': model.state_dict(),
                         'optimizer_state_dict': optimizer.state_dict(),
                         'loss': train_loss,
                         },
                        os.path.join('model', params.model, params.save,
-                                    file_name)+'_' + str(idx+1)
+                                    file_name) + '_' + str(idx + 1)
                        )
-        if idx-best_epoch > 40:
-            break   
+        if idx - best_epoch > 40:
+            break
 
     try_makedirs('result')
     try_makedirs(os.path.join('result', params.model))
@@ -92,12 +94,12 @@ def train_one_dataset(params, file_name, train_q_data, train_qa_data, train_pid,
     return best_epoch
 
 
-def test_one_dataset(params, file_name, test_q_data, test_qa_data, test_pid,  best_epoch):
+def test_one_dataset(params, file_name, test_q_data, test_qa_data, test_pid, best_epoch):
     print("\n\nStart testing ......................\n Best epoch:", best_epoch)
     model = load_model(params)
 
     checkpoint = torch.load(os.path.join(
-        'model', params.model, params.save, file_name) + '_'+str(best_epoch))
+        'model', params.model, params.save, file_name) + '_' + str(best_epoch))
     model.load_state_dict(checkpoint['model_state_dict'])
 
     test_loss, test_accuracy, test_auc = test(
@@ -107,7 +109,7 @@ def test_one_dataset(params, file_name, test_q_data, test_qa_data, test_pid,  be
     print("test_loss\t", test_loss)
 
     # Now Delete all the models
-    path = os.path.join('model', params.model, params.save,  file_name) + '_*'
+    path = os.path.join('model', params.model, params.save, file_name) + '_*'
     for i in glob.glob(path):
         os.remove(i)
 
@@ -178,14 +180,14 @@ if __name__ == '__main__':
         params.n_question = 110
         params.batch_size = 24
         params.seqlen = 200
-        params.data_dir = 'data/'+dataset
+        params.data_dir = 'data/' + dataset
         params.data_name = dataset
         params.n_pid = 16891
 
     if dataset in {"assist2017_pid"}:
         params.batch_size = 24
         params.seqlen = 200
-        params.data_dir = 'data/'+dataset
+        params.data_dir = 'data/' + dataset
         params.data_name = dataset
         params.n_question = 102
         params.n_pid = 3162
@@ -194,14 +196,14 @@ if __name__ == '__main__':
         params.n_question = 100
         params.batch_size = 24
         params.seqlen = 200
-        params.data_dir = 'data/'+dataset
+        params.data_dir = 'data/' + dataset
         params.data_name = dataset
 
     if dataset in {"statics"}:
         params.n_question = 1223
         params.batch_size = 24
         params.seqlen = 200
-        params.data_dir = 'data/'+dataset
+        params.data_dir = 'data/' + dataset
         params.data_name = dataset
 
     params.save = params.data_name
@@ -228,12 +230,12 @@ if __name__ == '__main__':
         print('\t', key, '\t', d[key])
     file_name = ''
     for item_ in file_name_identifier:
-        file_name = file_name+item_[0] + str(item_[1])
+        file_name = file_name + item_[0] + str(item_[1])
 
     train_data_path = params.data_dir + "/" + \
-        params.data_name + "_train"+str(params.train_set)+".csv"
+                      params.data_name + "_train" + str(params.train_set) + ".csv"
     valid_data_path = params.data_dir + "/" + \
-        params.data_name + "_valid"+str(params.train_set)+".csv"
+                      params.data_name + "_valid" + str(params.train_set) + ".csv"
 
     train_q_data, train_qa_data, train_pid = dat.load_data(train_data_path)
     valid_q_data, valid_qa_data, valid_pid = dat.load_data(valid_data_path)
@@ -248,7 +250,7 @@ if __name__ == '__main__':
     best_epoch = train_one_dataset(
         params, file_name, train_q_data, train_qa_data, train_pid, valid_q_data, valid_qa_data, valid_pid)
     test_data_path = params.data_dir + "/" + \
-        params.data_name + "_test"+str(params.train_set)+".csv"
+                     params.data_name + "_test" + str(params.train_set) + ".csv"
     test_q_data, test_qa_data, test_index = dat.load_data(
         test_data_path)
     test_one_dataset(params, file_name, test_q_data,

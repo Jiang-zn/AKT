@@ -11,6 +11,7 @@ class DATA(object):
         self.separate_char = separate_char
         self.n_question = n_question
         self.seqlen = seqlen
+
     # data format
     # id, true_student_id
     # 1,1,1,1,7,7,9,10,10,10,10,11,11,45,54
@@ -25,15 +26,15 @@ class DATA(object):
             line = line.strip()
             # lineID starts from 0
             if lineID % 3 == 0:
-                student_id = lineID//3
+                student_id = lineID // 3
             if lineID % 3 == 1:
                 Q = line.split(self.separate_char)
-                if len(Q[len(Q)-1]) == 0:
+                if len(Q[len(Q) - 1]) == 0:
                     Q = Q[:-1]
                 # print(len(Q))
             elif lineID % 3 == 2:
                 A = line.split(self.separate_char)
-                if len(A[len(A)-1]) == 0:
+                if len(A[len(A) - 1]) == 0:
                     A = A[:-1]
                 # print(len(A),A)
 
@@ -51,7 +52,7 @@ class DATA(object):
                     if k == n_split - 1:
                         endINdex = len(A)
                     else:
-                        endINdex = (k+1) * self.seqlen
+                        endINdex = (k + 1) * self.seqlen
                     for i in range(k * self.seqlen, endINdex):
                         if len(Q[i]) > 0:
                             # int(A[i]) is in {0,1}
@@ -60,7 +61,7 @@ class DATA(object):
                             answer_sequence.append(Xindex)
                         else:
                             print(Q[i])
-                    #print('instance:-->', len(instance),instance)
+                    # print('instance:-->', len(instance),instance)
                     q_data.append(question_sequence)
                     qa_data.append(answer_sequence)
                     idx_data.append(student_id)
@@ -81,13 +82,14 @@ class DATA(object):
 
 
 class PID_DATA(object):
-    def __init__(self, n_question,  seqlen, separate_char, name="data"):
+    def __init__(self, n_question, seqlen, separate_char, name="data"):
         # In the ASSISTments2009 dataset:
         # param: n_queation = 110
         #        seqlen = 200
         self.separate_char = separate_char
         self.seqlen = seqlen
         self.n_question = n_question
+
     # data format
     # id, true_student_id
     # pid1, pid2, ...
@@ -103,10 +105,10 @@ class PID_DATA(object):
             line = line.strip()
             # lineID starts from 0
             if lineID % 4 == 0:
-                student_id = lineID//4
+                student_id = lineID // 4
             if lineID % 4 == 2:
                 Q = line.split(self.separate_char)
-                if len(Q[len(Q)-1]) == 0:
+                if len(Q[len(Q) - 1]) == 0:
                     Q = Q[:-1]
                 # print(len(Q))
             if lineID % 4 == 1:
@@ -116,7 +118,7 @@ class PID_DATA(object):
 
             elif lineID % 4 == 3:
                 A = line.split(self.separate_char)
-                if len(A[len(A)-1]) == 0:
+                if len(A[len(A) - 1]) == 0:
                     A = A[:-1]
                 # print(len(A),A)
 
@@ -135,7 +137,7 @@ class PID_DATA(object):
                     if k == n_split - 1:
                         endINdex = len(A)
                     else:
-                        endINdex = (k+1) * self.seqlen
+                        endINdex = (k + 1) * self.seqlen
                     for i in range(k * self.seqlen, endINdex):
                         if len(Q[i]) > 0:
                             Xindex = int(Q[i]) + int(A[i]) * self.n_question

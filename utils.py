@@ -1,6 +1,7 @@
 import os
 import torch
 from akt import AKT
+
 # from sakt import SAKT
 # from dkvmn import DKVMN
 # from dkt import DKT
@@ -21,16 +22,23 @@ def get_file_name_identifier(params):
     model_type = words[0]
     if model_type == 'dkt':
         file_name = [['_b', params.batch_size], ['_gn', params.maxgradnorm], ['_lr', params.lr],
-                     ['_s', params.seed], ['_sl', params.seqlen], ['_dm', params.d_model], ['_ts', params.train_set],  ['_h', params.hidden_dim], ['_do', params.dropout], ['_l2', params.l2]]
+                     ['_s', params.seed], ['_sl', params.seqlen], ['_dm', params.d_model], ['_ts', params.train_set],
+                     ['_h', params.hidden_dim], ['_do', params.dropout], ['_l2', params.l2]]
     elif model_type == 'dktplus':
         file_name = [['_b', params.batch_size], ['_gn', params.maxgradnorm], ['_lr', params.lr],
-                     ['_s', params.seed], ['_sl', params.seqlen], ['_dm', params.d_model], ['_ts', params.train_set],  ['_h', params.hidden_dim], ['_do', params.dropout], ['_l2', params.l2], ['_r', params.lamda_r], ['_w1', params.lamda_w1], ['_w2', params.lamda_w2]]
+                     ['_s', params.seed], ['_sl', params.seqlen], ['_dm', params.d_model], ['_ts', params.train_set],
+                     ['_h', params.hidden_dim], ['_do', params.dropout], ['_l2', params.l2], ['_r', params.lamda_r],
+                     ['_w1', params.lamda_w1], ['_w2', params.lamda_w2]]
     elif model_type == 'dkvmn':
         file_name = [['_b', params.batch_size], ['_gn', params.maxgradnorm], ['_lr', params.lr],
-                     ['_s', params.seed], ['_sl', params.seqlen], ['_q', params.q_embed_dim], ['_qa', params.qa_embed_dim], ['_ts', params.train_set], ['_m', params.memory_size], ['_l2', params.l2]]
+                     ['_s', params.seed], ['_sl', params.seqlen], ['_q', params.q_embed_dim],
+                     ['_qa', params.qa_embed_dim], ['_ts', params.train_set], ['_m', params.memory_size],
+                     ['_l2', params.l2]]
     elif model_type in {'akt', 'sakt'}:
-        file_name = [['_b', params.batch_size], ['_nb', params.n_block], ['_gn', params.maxgradnorm], ['_lr', params.lr],
-                     ['_s', params.seed], ['_sl', params.seqlen], ['_do', params.dropout], ['_dm', params.d_model], ['_ts', params.train_set], ['_kq', params.kq_same], ['_l2', params.l2]]
+        file_name = [['_b', params.batch_size], ['_nb', params.n_block], ['_gn', params.maxgradnorm],
+                     ['_lr', params.lr],
+                     ['_s', params.seed], ['_sl', params.seqlen], ['_do', params.dropout], ['_dm', params.d_model],
+                     ['_ts', params.train_set], ['_kq', params.kq_same], ['_l2', params.l2]]
     return file_name
 
 

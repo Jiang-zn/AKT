@@ -19,7 +19,7 @@ class Dim(IntEnum):
 
 class AKT(nn.Module):
     def __init__(self, n_question, n_pid, d_model, n_blocks,
-                 kq_same, dropout, model_type, final_fc_dim=512, n_heads=8, d_ff=2048,  l2=1e-5, separate_qa=False):
+                 kq_same, dropout, model_type, final_fc_dim=512, n_heads=8, d_ff=2048, l2=1e-5, separate_qa=False):
         super().__init__()
         """
         Input:
@@ -37,18 +37,19 @@ class AKT(nn.Module):
         self.separate_qa = separate_qa
         embed_l = d_model
         if self.n_pid > 0:
-            self.difficult_param = nn.Embedding(self.n_pid+1, 1)
-            self.q_embed_diff = nn.Embedding(self.n_question+1, embed_l)
+            self.difficult_param = nn.Embedding(self.n_pid + 1, 1)
+            self.q_embed_diff = nn.Embedding(self.n_question + 1, embed_l)
             self.qa_embed_diff = nn.Embedding(2 * self.n_question + 1, embed_l)
         # n_question+1 ,d_model
-        self.q_embed = nn.Embedding(self.n_question+1, embed_l)
+        self.q_embed = nn.Embedding(self.n_question + 1, embed_l)
         if self.separate_qa:
-            self.qa_embed = nn.Embedding(2*self.n_question+1, embed_l)
+            self.qa_embed = nn.Embedding(2 * self.n_question + 1, embed_l)
         else:
             self.qa_embed = nn.Embedding(2, embed_l)
         # Architecture Object. It contains stack of attention block
         self.model = Architecture(n_question=n_question, n_blocks=n_blocks, n_heads=n_heads, dropout=dropout,
-                                    d_model=d_model, d_feature=d_model / n_heads, d_ff=d_ff,  kq_same=self.kq_same, model_type=self.model_type)
+                                  d_model=d_model, d_feature=d_model / n_heads, d_ff=d_ff, kq_same=self.kq_same,
+                                  model_type=self.model_type)
 
         self.out = nn.Sequential(
             nn.Linear(d_model + embed_l,
@@ -61,7 +62,7 @@ class AKT(nn.Module):
 
     def reset(self):
         for p in self.parameters():
-            if p.size(0) == self.n_pid+1 and self.n_pid > 0:
+            if p.size(0) == self.n_pid + 1 and self.n_pid > 0:
                 torch.nn.init.constant_(p, 0.)
 
     def forward(self, q_data, qa_data, target, pid_data=None):
@@ -71,23 +72,23 @@ class AKT(nn.Module):
             # BS, seqlen, d_model #f_(ct,rt)
             qa_embed_data = self.qa_embed(qa_data)
         else:
-            qa_data = (qa_data-q_data)//self.n_question  # rt
+            qa_data = (qa_data - q_data) // self.n_question  # rt
             # BS, seqlen, d_model # c_ct+ g_rt =e_(ct,rt)
-            qa_embed_data = self.qa_embed(qa_data)+q_embed_data
+            qa_embed_data = self.qa_embed(qa_data) + q_embed_data
 
         if self.n_pid > 0:
             q_embed_diff_data = self.q_embed_diff(q_data)  # d_ct
             pid_embed_data = self.difficult_param(pid_data)  # uq
             q_embed_data = q_embed_data + pid_embed_data * \
-                q_embed_diff_data  # uq *d_ct + c_ct
+                           q_embed_diff_data  # uq *d_ct + c_ct
             qa_embed_diff_data = self.qa_embed_diff(
                 qa_data)  # f_(ct,rt) or #h_rt
             if self.separate_qa:
                 qa_embed_data = qa_embed_data + pid_embed_data * \
-                    qa_embed_diff_data  # uq* f_(ct,rt) + e_(ct,rt)
+                                qa_embed_diff_data  # uq* f_(ct,rt) + e_(ct,rt)
             else:
                 qa_embed_data = qa_embed_data + pid_embed_data * \
-                    (qa_embed_diff_data+q_embed_diff_data)  # + uq *(h_rt+d_ct)
+                                (qa_embed_diff_data + q_embed_diff_data)  # + uq *(h_rt+d_ct)
             c_reg_loss = (pid_embed_data ** 2.).sum() * self.l2
         else:
             c_reg_loss = 0.
@@ -107,11 +108,11 @@ class AKT(nn.Module):
         masked_preds = preds[mask]
         loss = nn.BCEWithLogitsLoss(reduction='none')
         output = loss(masked_preds, masked_labels)
-        return output.sum()+c_reg_loss, m(preds), mask.sum()
+        return output.sum() + c_reg_loss, m(preds), mask.sum()
 
 
 class Architecture(nn.Module):
-    def __init__(self, n_question,  n_blocks, d_model, d_feature,
+    def __init__(self, n_question, n_blocks, d_model, d_feature,
                  d_ff, n_heads, dropout, kq_same, model_type):
         super().__init__()
         """
@@ -132,7 +133,7 @@ class Architecture(nn.Module):
             self.blocks_2 = nn.ModuleList([
                 TransformerLayer(d_model=d_model, d_feature=d_model // n_heads,
                                  d_ff=d_ff, dropout=dropout, n_heads=n_heads, kq_same=kq_same)
-                for _ in range(n_blocks*2)
+                for _ in range(n_blocks * 2)
             ])
 
     def forward(self, q_embed_data, qa_embed_data):
@@ -163,7 +164,7 @@ class Architecture(nn.Module):
 
 class TransformerLayer(nn.Module):
     def __init__(self, d_model, d_feature,
-                 d_ff, n_heads, dropout,  kq_same):
+                 d_ff, n_heads, dropout, kq_same):
         super().__init__()
         """
             This is a Basic Block of Transformer paper. It containts one Multi-head attention object. Followed by layer norm and postion wise feedforward net and dropout layer.
@@ -282,7 +283,7 @@ class MultiHeadAttention(nn.Module):
                            mask, self.dropout, zero_pad, gammas)
 
         # concatenate heads and put through final linear layer
-        concat = scores.transpose(1, 2).contiguous()\
+        concat = scores.transpose(1, 2).contiguous() \
             .view(bs, -1, self.d_model)
 
         output = self.out_proj(concat)
@@ -295,7 +296,7 @@ def attention(q, k, v, d_k, mask, dropout, zero_pad, gamma=None):
     This is called by Multi-head atention object to find the values.
     """
     scores = torch.matmul(q, k.transpose(-2, -1)) / \
-        math.sqrt(d_k)  # BS, 8, seqlen, seqlen
+             math.sqrt(d_k)  # BS, 8, seqlen, seqlen
     bs, head, seqlen = scores.size(0), scores.size(1), scores.size(2)
 
     x1 = torch.arange(seqlen).expand(seqlen, -1).to(device)
@@ -309,16 +310,16 @@ def attention(q, k, v, d_k, mask, dropout, zero_pad, gamma=None):
         disttotal_scores = torch.sum(
             scores_, dim=-1, keepdim=True)  # bs, 8, sl, 1
         position_effect = torch.abs(
-            x1-x2)[None, None, :, :].type(torch.FloatTensor).to(device)  # 1, 1, seqlen, seqlen
+            x1 - x2)[None, None, :, :].type(torch.FloatTensor).to(device)  # 1, 1, seqlen, seqlen
         # bs, 8, sl, sl positive distance
         dist_scores = torch.clamp(
-            (disttotal_scores-distcum_scores)*position_effect, min=0.)
+            (disttotal_scores - distcum_scores) * position_effect, min=0.)
         dist_scores = dist_scores.sqrt().detach()
     m = nn.Softplus()
     gamma = -1. * m(gamma).unsqueeze(0)  # 1,8,1,1
     # Now after do exp(gamma*distance) and then clamp to 1e-5 to 1e5
     total_effect = torch.clamp(torch.clamp(
-        (dist_scores*gamma).exp(), min=1e-5), max=1e5)
+        (dist_scores * gamma).exp(), min=1e-5), max=1e5)
     scores = scores * total_effect
 
     scores.masked_fill_(mask == 0, -1e32)
