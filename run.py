@@ -35,10 +35,10 @@ def compute_accuracy(all_target, all_pred):
 def train(net, params, optimizer, q_data, qa_data, pid_data, label):
     net.train()
     pid_flag, model_type = model_isPid_type(params.model)
-    N = int(math.ceil(len(q_data) / params.batch_size))
+    N = int(math.ceil(len(q_data) / params.batch_size)) # 一次epoch中的batch数，2994/24=124
     q_data = q_data.T  # Shape: (200,3633)
     qa_data = qa_data.T  # Shape: (200,3633)
-    # Shuffle the data
+    # Shuffle the data，将题目数据和答案数据打乱顺序，增加数据随机性，减小模型过拟合的风险
     shuffled_ind = np.arange(q_data.shape[1])
     np.random.shuffle(shuffled_ind)
     q_data = q_data[:, shuffled_ind]
@@ -55,14 +55,11 @@ def train(net, params, optimizer, q_data, qa_data, pid_data, label):
     true_el = 0
     for idx in range(N):
         optimizer.zero_grad()
-
         q_one_seq = q_data[:, idx * params.batch_size:(idx + 1) * params.batch_size]
         if pid_flag:
-            pid_one_seq = pid_data[:, idx *
-                                      params.batch_size:(idx + 1) * params.batch_size]
+            pid_one_seq = pid_data[:, idx * params.batch_size:(idx + 1) * params.batch_size]
 
-        qa_one_seq = qa_data[:, idx *
-                                params.batch_size:(idx + 1) * params.batch_size]
+        qa_one_seq = qa_data[:, idx * params.batch_size:(idx + 1) * params.batch_size]
 
         if model_type in transpose_data_model:
             input_q = np.transpose(q_one_seq[:, :])  # Shape (bs, seqlen)
@@ -77,11 +74,13 @@ def train(net, params, optimizer, q_data, qa_data, pid_data, label):
             target = (qa_one_seq[:, :])
             if pid_flag:
                 input_pid = (pid_one_seq[:, :])  # Shape (seqlen, batch_size)
+        # 将target减1然后除以总知识数，这样可以将回答错误的标签映射到[0, 1]之间，
+        # 回答正确的标签映射到[1, 2]之间，补的0映射到[-1, 0]之间
+        # 1表示回答正确，0表示回答错误，-1表示补的0
         target = (target - 1) / params.n_question
         target_1 = np.floor(target)
         el = np.sum(target_1 >= -.9)
         element_count += el
-
         input_q = torch.from_numpy(input_q).long().to(device)
         input_qa = torch.from_numpy(input_qa).long().to(device)
         target = torch.from_numpy(target_1).float().to(device)
@@ -96,10 +95,11 @@ def train(net, params, optimizer, q_data, qa_data, pid_data, label):
         loss.backward()
         true_el += true_ct.cpu().numpy()
 
+        # 执行参数更新的步骤,帮助防止梯度爆炸的问题
         if params.maxgradnorm > 0.:
             torch.nn.utils.clip_grad_norm_(
                 net.parameters(), max_norm=params.maxgradnorm)
-
+        # 据计算出来的梯度信息对模型的参数进行更新
         optimizer.step()
 
         # correct: 1.0; wrong 0.0; padding -1.0
@@ -115,7 +115,6 @@ def train(net, params, optimizer, q_data, qa_data, pid_data, label):
 
     all_pred = np.concatenate(pred_list, axis=0)
     all_target = np.concatenate(target_list, axis=0)
-
     loss = binaryEntropy(all_target, all_pred)
     auc = compute_auc(all_target, all_pred)
     accuracy = compute_accuracy(all_target, all_pred)
@@ -140,14 +139,11 @@ def test(net, params, optimizer, q_data, qa_data, pid_data, label):
     true_el = 0
     element_count = 0
     for idx in range(N):
-
         q_one_seq = q_data[:, idx * params.batch_size:(idx + 1) * params.batch_size]
         if pid_flag:
-            pid_one_seq = pid_data[:, idx *
-                                      params.batch_size:(idx + 1) * params.batch_size]
+            pid_one_seq = pid_data[:, idx * params.batch_size:(idx + 1) * params.batch_size]
         input_q = q_one_seq[:, :]  # Shape (seqlen, batch_size)
-        qa_one_seq = qa_data[:, idx *
-                                params.batch_size:(idx + 1) * params.batch_size]
+        qa_one_seq = qa_data[:, idx * params.batch_size:(idx + 1) * params.batch_size]
         input_qa = qa_one_seq[:, :]  # Shape (seqlen, batch_size)
 
         # print 'seq_num', seq_num

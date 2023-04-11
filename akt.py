@@ -52,12 +52,11 @@ class AKT(nn.Module):
                                   model_type=self.model_type)
 
         self.out = nn.Sequential(
-            nn.Linear(d_model + embed_l,
-                      final_fc_dim), nn.ReLU(), nn.Dropout(self.dropout),
-            nn.Linear(final_fc_dim, 256), nn.ReLU(
-            ), nn.Dropout(self.dropout),
+            nn.Linear(d_model + embed_l, final_fc_dim), nn.ReLU(), nn.Dropout(self.dropout),
+            nn.Linear(final_fc_dim, 256), nn.ReLU(), nn.Dropout(self.dropout),
             nn.Linear(256, 1)
         )
+
         self.reset()
 
     def reset(self):
@@ -72,7 +71,7 @@ class AKT(nn.Module):
             # BS, seqlen, d_model #f_(ct,rt)
             qa_embed_data = self.qa_embed(qa_data)
         else:
-            qa_data = (qa_data - q_data) // self.n_question  # rt
+            qa_data = torch.div(qa_data - q_data, self.n_question, rounding_mode='floor')   # rt
             # BS, seqlen, d_model # c_ct+ g_rt =e_(ct,rt)
             qa_embed_data = self.qa_embed(qa_data) + q_embed_data
 

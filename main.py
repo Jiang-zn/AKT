@@ -4,6 +4,8 @@ import os.path
 import glob
 import logging
 import argparse
+import time
+
 import numpy as np
 import torch
 from load_data import DATA, PID_DATA
@@ -36,6 +38,8 @@ def train_one_dataset(params, file_name, train_q_data, train_qa_data, train_pid,
     best_valid_auc = 0
 
     for idx in range(params.max_iter):
+        # 设置每一次迭代的开始时间，最后获取结束时间，计算训练时间，输出格式为时分秒
+        start_time = time.time()
         # Train Model
         train_loss, train_accuracy, train_auc = train(
             model, params, optimizer, train_q_data, train_qa_data, train_pid, label='Train')
@@ -45,10 +49,9 @@ def train_one_dataset(params, file_name, train_q_data, train_qa_data, train_pid,
 
         print('epoch', idx + 1)
         print("valid_auc\t", valid_auc, "\ttrain_auc\t", train_auc)
-        print("valid_accuracy\t", valid_accuracy,
-              "\ttrain_accuracy\t", train_accuracy)
+        print("valid_accuracy\t", valid_accuracy, "\ttrain_accuracy\t", train_accuracy)
         print("valid_loss\t", valid_loss, "\ttrain_loss\t", train_loss)
-
+        print("time\t", time.strftime("%Hh %Mm %Ss", time.gmtime(time.time() - start_time)))
         try_makedirs('model')
         try_makedirs(os.path.join('model', params.model))
         try_makedirs(os.path.join('model', params.model, params.save))
@@ -60,7 +63,7 @@ def train_one_dataset(params, file_name, train_q_data, train_qa_data, train_pid,
         all_valid_accuracy[idx + 1] = valid_accuracy
         all_train_accuracy[idx + 1] = train_accuracy
 
-        # output the epoch with the best validation auc
+        # output the epoch with the best validation auc,在训练过程中定期保存最好的模型，并删除之前保存的模型，以避免存储大量模型文件
         if valid_auc > best_valid_auc:
             path = os.path.join('model', params.model,
                                 params.save, file_name) + '_*'
@@ -76,6 +79,7 @@ def train_one_dataset(params, file_name, train_q_data, train_qa_data, train_pid,
                        os.path.join('model', params.model, params.save,
                                     file_name) + '_' + str(idx + 1)
                        )
+        # 提高模型的泛化能力，模型在过去40轮训练中没有表现更好的时候，就会停止训练并跳出循环。这是为了避免模型在过拟合的情况下继续训练
         if idx - best_epoch > 40:
             break
 
@@ -125,43 +129,29 @@ if __name__ == '__main__':
     parser.add_argument('--seed', type=int, default=224, help='default seed')
 
     # Common parameters
-    parser.add_argument('--optim', type=str, default='adam',
-                        help='Default Optimizer')
-    parser.add_argument('--batch_size', type=int,
-                        default=24, help='the batch size')
-    parser.add_argument('--lr', type=float, default=1e-5,
-                        help='learning rate')
-    parser.add_argument('--maxgradnorm', type=float,
-                        default=-1, help='maximum gradient norm')
-    parser.add_argument('--final_fc_dim', type=int, default=512,
-                        help='hidden state dim for final fc layer')
+    parser.add_argument('--optim', type=str, default='adam', help='Default Optimizer')
+    parser.add_argument('--batch_size', type=int, default=24, help='the batch size')
+    parser.add_argument('--lr', type=float, default=1e-5, help='learning rate')
+    parser.add_argument('--maxgradnorm', type=float, default=-1, help='maximum gradient norm')
+    parser.add_argument('--final_fc_dim', type=int, default=512, help='hidden state dim for final fc layer')
 
     # AKT Specific Parameter
-    parser.add_argument('--d_model', type=int, default=256,
-                        help='Transformer d_model shape')
-    parser.add_argument('--d_ff', type=int, default=1024,
-                        help='Transformer d_ff shape')
-    parser.add_argument('--dropout', type=float,
-                        default=0.05, help='Dropout rate')
-    parser.add_argument('--n_block', type=int, default=1,
-                        help='number of blocks')
-    parser.add_argument('--n_head', type=int, default=8,
-                        help='number of heads in multihead attention')
+    parser.add_argument('--dropout', type=float, default=0.05, help='Dropout rate')
+    parser.add_argument('--d_model', type=int, default=256, help='Transformer d_model shape')
+    parser.add_argument('--d_ff', type=int, default=1024, help='Transformer d_ff shape')
+    parser.add_argument('--n_block', type=int, default=1, help='number of blocks')
+    parser.add_argument('--n_head', type=int, default=8, help='number of heads in multi-head attention')
+    # 是否将query和key使用相同的矩阵进行计算，默认为1
     parser.add_argument('--kq_same', type=int, default=1)
 
     # AKT-R Specific Parameter
-    parser.add_argument('--l2', type=float,
-                        default=1e-5, help='l2 penalty for difficulty')
+    parser.add_argument('--l2', type=float, default=1e-5, help='l2 penalty for difficulty')
 
-    # DKVMN Specific  Parameter
-    parser.add_argument('--q_embed_dim', type=int, default=50,
-                        help='question embedding dimensions')
-    parser.add_argument('--qa_embed_dim', type=int, default=256,
-                        help='answer and question embedding dimensions')
-    parser.add_argument('--memory_size', type=int,
-                        default=50, help='memory size')
-    parser.add_argument('--init_std', type=float, default=0.1,
-                        help='weight initialization std')
+    # DKT-VMN Specific  Parameter
+    parser.add_argument('--q_embed_dim', type=int, default=50, help='question embedding dimensions')
+    parser.add_argument('--qa_embed_dim', type=int, default=256, help='answer and question embedding dimensions')
+    parser.add_argument('--memory_size', type=int, default=50, help='memory size')
+    parser.add_argument('--init_std', type=float, default=0.1, help='weight initialization std')
     # DKT Specific Parameter
     parser.add_argument('--hidden_dim', type=int, default=512)
     parser.add_argument('--lamda_r', type=float, default=0.1)
@@ -170,38 +160,38 @@ if __name__ == '__main__':
 
     # Datasets and Model
     parser.add_argument('--model', type=str, default='akt_pid',
-                        help="combination of akt/sakt/dkvmn/dkt (mandatory), pid/cid (mandatory) separated by underscore '_'. For example tf_pid")
+                        help="combination of akt/dkvmn/dkt, pid/cid separated by underscore '_'. For example tf_pid")
     parser.add_argument('--dataset', type=str, default="assist2009_pid")
 
     params = parser.parse_args()
     dataset = params.dataset
 
     if dataset in {"assist2009_pid"}:
-        params.n_question = 110
         params.batch_size = 24
+        params.n_question = 110
         params.seqlen = 200
+        params.n_pid = 16891
         params.data_dir = 'data/' + dataset
         params.data_name = dataset
-        params.n_pid = 16891
 
     if dataset in {"assist2017_pid"}:
         params.batch_size = 24
+        params.n_question = 102
         params.seqlen = 200
+        params.n_pid = 3162
         params.data_dir = 'data/' + dataset
         params.data_name = dataset
-        params.n_question = 102
-        params.n_pid = 3162
 
     if dataset in {"assist2015"}:
-        params.n_question = 100
         params.batch_size = 24
+        params.n_question = 100
         params.seqlen = 200
         params.data_dir = 'data/' + dataset
         params.data_name = dataset
 
     if dataset in {"statics"}:
-        params.n_question = 1223
         params.batch_size = 24
+        params.n_question = 1223
         params.seqlen = 200
         params.data_dir = 'data/' + dataset
         params.data_name = dataset
@@ -211,11 +201,9 @@ if __name__ == '__main__':
 
     # Setup
     if "pid" not in params.data_name:
-        dat = DATA(n_question=params.n_question,
-                   seqlen=params.seqlen, separate_char=',')
+        dat = DATA(n_question=params.n_question, seqlen=params.seqlen, separate_char=',')
     else:
-        dat = PID_DATA(n_question=params.n_question,
-                       seqlen=params.seqlen, separate_char=',')
+        dat = PID_DATA(n_question=params.n_question, seqlen=params.seqlen, separate_char=',')
     seedNum = params.seed
     np.random.seed(seedNum)
     torch.backends.cudnn.deterministic = True
@@ -224,7 +212,7 @@ if __name__ == '__main__':
     np.random.seed(seedNum)
     file_name_identifier = get_file_name_identifier(params)
 
-    ###Train- Test
+    # Train- Test,参数打印
     d = vars(params)
     for key in d:
         print('\t', key, '\t', d[key])
@@ -232,26 +220,25 @@ if __name__ == '__main__':
     for item_ in file_name_identifier:
         file_name = file_name + item_[0] + str(item_[1])
 
-    train_data_path = params.data_dir + "/" + \
-                      params.data_name + "_train" + str(params.train_set) + ".csv"
-    valid_data_path = params.data_dir + "/" + \
-                      params.data_name + "_valid" + str(params.train_set) + ".csv"
+    for filenums in range(1, 6):
+        train_data_path = params.data_dir + "/" + \
+                          params.data_name + "_train" + str(filenums) + ".csv"
+        valid_data_path = params.data_dir + "/" + \
+                          params.data_name + "_valid" + str(filenums) + ".csv"
 
-    train_q_data, train_qa_data, train_pid = dat.load_data(train_data_path)
-    valid_q_data, valid_qa_data, valid_pid = dat.load_data(valid_data_path)
+        train_q_data, train_qa_data, train_pid = dat.load_data(train_data_path)
+        valid_q_data, valid_qa_data, valid_pid = dat.load_data(valid_data_path)
 
-    print("\n")
-    print("train_q_data.shape", train_q_data.shape)
-    print("train_qa_data.shape", train_qa_data.shape)
-    print("valid_q_data.shape", valid_q_data.shape)  # (1566, 200)
-    print("valid_qa_data.shape", valid_qa_data.shape)  # (1566, 200)
-    print("\n")
-    # Train and get the best episode
-    best_epoch = train_one_dataset(
-        params, file_name, train_q_data, train_qa_data, train_pid, valid_q_data, valid_qa_data, valid_pid)
-    test_data_path = params.data_dir + "/" + \
-                     params.data_name + "_test" + str(params.train_set) + ".csv"
-    test_q_data, test_qa_data, test_index = dat.load_data(
-        test_data_path)
-    test_one_dataset(params, file_name, test_q_data,
-                     test_qa_data, test_index, best_epoch)
+        print("\n")
+        print("train_q_data.shape", train_q_data.shape)
+        print("train_qa_data.shape", train_qa_data.shape)
+        print("valid_q_data.shape", valid_q_data.shape)  # (1566, 200)
+        print("valid_qa_data.shape", valid_qa_data.shape)  # (1566, 200)
+        print("\n")
+        # Train and get the best episode
+        best_epoch = train_one_dataset(params, file_name, train_q_data, train_qa_data, train_pid, valid_q_data,
+                                       valid_qa_data, valid_pid)
+        test_data_path = params.data_dir + "/" + params.data_name + "_test" + str(params.train_set) + ".csv"
+
+        test_q_data, test_qa_data, test_index = dat.load_data(test_data_path)
+        test_one_dataset(params, file_name, test_q_data, test_qa_data, test_index, best_epoch)

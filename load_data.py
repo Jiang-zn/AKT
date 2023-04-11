@@ -66,9 +66,10 @@ class DATA(object):
                     qa_data.append(answer_sequence)
                     idx_data.append(student_id)
         f_data.close()
-        ### data: [[],[],[],...] <-- set_max_seqlen is used
+        # data: [[],[],[],...] <-- set_max_seqlen is used
         # convert data into ndarrays for better speed during training
         q_dataArray = np.zeros((len(q_data), self.seqlen))
+        # 这个切片操作取出了数组中第 j 行的前 len(dat) 列，并用 dat 填充
         for j in range(len(q_data)):
             dat = q_data[j]
             q_dataArray[j, :len(dat)] = dat
@@ -158,6 +159,7 @@ class PID_DATA(object):
             dat = q_data[j]
             q_dataArray[j, :len(dat)] = dat
 
+        # 做对的加110，做错的加0,规范每一行的长度为200
         qa_dataArray = np.zeros((len(qa_data), self.seqlen))
         for j in range(len(qa_data)):
             dat = qa_data[j]
@@ -167,4 +169,5 @@ class PID_DATA(object):
         for j in range(len(p_data)):
             dat = p_data[j]
             p_dataArray[j, :len(dat)] = dat
+
         return q_dataArray, qa_dataArray, p_dataArray
