@@ -23,8 +23,7 @@ def train_one_dataset(params, file_name, train_q_data, train_qa_data, train_pid,
     # ================================== model initialization ==================================
 
     model = load_model(params)
-    optimizer = torch.optim.Adam(
-        model.parameters(), lr=params.lr, betas=(0.9, 0.999), eps=1e-8)
+    optimizer = torch.optim.Adam(model.parameters(), lr=params.lr, betas=(0.9, 0.999), eps=1e-8)
 
     print("\n")
 
@@ -63,7 +62,8 @@ def train_one_dataset(params, file_name, train_q_data, train_qa_data, train_pid,
         all_valid_accuracy[idx + 1] = valid_accuracy
         all_train_accuracy[idx + 1] = train_accuracy
 
-        # output the epoch with the best validation auc,在训练过程中定期保存最好的模型，并删除之前保存的模型，以避免存储大量模型文件
+        # output the epoch with the best validation auc
+        # 在训练过程中定期保存最好的模型，并删除之前保存的模型，以避免存储大量模型文件
         if valid_auc > best_valid_auc:
             path = os.path.join('model', params.model,
                                 params.save, file_name) + '_*'
