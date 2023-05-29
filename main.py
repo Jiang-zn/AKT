@@ -173,7 +173,6 @@ if __name__ == '__main__':
         params.n_pid = 16891
         params.data_dir = 'data/' + dataset
         params.data_name = dataset
-
     if dataset in {"assist2017_pid"}:
         params.batch_size = 24
         params.n_question = 102
@@ -181,14 +180,12 @@ if __name__ == '__main__':
         params.n_pid = 3162
         params.data_dir = 'data/' + dataset
         params.data_name = dataset
-
     if dataset in {"assist2015"}:
         params.batch_size = 24
         params.n_question = 100
         params.seqlen = 200
         params.data_dir = 'data/' + dataset
         params.data_name = dataset
-
     if dataset in {"statics"}:
         params.batch_size = 24
         params.n_question = 1223
