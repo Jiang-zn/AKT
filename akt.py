@@ -36,7 +36,7 @@ class AKT(nn.Module):
         self.model_type = model_type
         self.separate_qa = separate_qa
         embed_l = d_model
-        if self.n_pid > 0:
+        if self.n_pid > 0:#难度嵌入
             self.difficult_param = nn.Embedding(self.n_pid + 1, 1)
             self.q_embed_diff = nn.Embedding(self.n_question + 1, embed_l)
             self.qa_embed_diff = nn.Embedding(2 * self.n_question + 1, embed_l)
@@ -66,12 +66,12 @@ class AKT(nn.Module):
 
     def forward(self, q_data, qa_data, target, pid_data=None):
         # Batch First
-        q_embed_data = self.q_embed(q_data)  # BS, seqlen,  d_model# c_ct
+        q_embed_data = self.q_embed(q_data)  # BS, seqlen,  d_model# c_ct知识点嵌入
         if self.separate_qa:
             # BS, seqlen, d_model #f_(ct,rt)
-            qa_embed_data = self.qa_embed(qa_data)
+            qa_embed_data = self.qa_embed(qa_data)  # 题目嵌入
         else:
-            qa_data = torch.div(qa_data - q_data, self.n_question, rounding_mode='floor')   # rt
+            qa_data = torch.div(qa_data - q_data, self.n_question, rounding_mode='floor')  # rt
             # BS, seqlen, d_model # c_ct+ g_rt =e_(ct,rt)
             qa_embed_data = self.qa_embed(qa_data) + q_embed_data
 

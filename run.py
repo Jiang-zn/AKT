@@ -36,6 +36,7 @@ def train(net, params, optimizer, q_data, qa_data, pid_data, label):
     net.train()
     pid_flag, model_type = model_isPid_type(params.model)
     N = int(math.ceil(len(q_data) / params.batch_size)) # 一次epoch中的batch数，2994/24=124
+
     q_data = q_data.T  # Shape: (200,3633)
     qa_data = qa_data.T  # Shape: (200,3633)
     # Shuffle the data，将题目数据和答案数据打乱顺序，增加数据随机性，减小模型过拟合的风险
