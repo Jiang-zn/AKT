@@ -105,12 +105,10 @@ def train(net, params, optimizer, q_data, qa_data, pid_data, label):
 
         # correct: 1.0; wrong 0.0; padding -1.0
         target = target_1.reshape((-1,))
-
         nopadding_index = np.flatnonzero(target >= -0.9)
         nopadding_index = nopadding_index.tolist()
         pred_nopadding = pred[nopadding_index]
         target_nopadding = target[nopadding_index]
-
         pred_list.append(pred_nopadding)
         target_list.append(target_nopadding)
 
