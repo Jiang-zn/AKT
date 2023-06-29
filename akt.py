@@ -69,7 +69,7 @@ class AKT(nn.Module):
         q_embed_data = self.q_embed(q_data)  # BS, seqlen,  d_model# c_ct知识点嵌入
         if self.separate_qa:
             # BS, seqlen, d_model #f_(ct,rt)
-            qa_embed_data = self.qa_embed(qa_data)  # 题目嵌入
+            qa_embed_data = self.qa_embed(qa_data)  # 嵌入
         else:
             qa_data = torch.div(qa_data - q_data, self.n_question, rounding_mode='floor')  # rt
             # BS, seqlen, d_model # c_ct+ g_rt =e_(ct,rt)
@@ -79,9 +79,8 @@ class AKT(nn.Module):
             q_embed_diff_data = self.q_embed_diff(q_data)  # d_ct
             pid_embed_data = self.difficult_param(pid_data)  # uq
             q_embed_data = q_embed_data + pid_embed_data * \
-                           q_embed_diff_data  # uq *d_ct + c_ct
-            qa_embed_diff_data = self.qa_embed_diff(
-                qa_data)  # f_(ct,rt) or #h_rt
+                           q_embed_diff_data  # uq *d_ct + c_ct，重要公式
+            qa_embed_diff_data = self.qa_embed_diff(qa_data)  # f_(ct,rt) or #h_rt
             if self.separate_qa:
                 qa_embed_data = qa_embed_data + pid_embed_data * \
                                 qa_embed_diff_data  # uq* f_(ct,rt) + e_(ct,rt)

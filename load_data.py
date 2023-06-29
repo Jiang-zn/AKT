@@ -141,7 +141,7 @@ class PID_DATA(object):
                     else:
                         endINdex = (k + 1) * self.seqlen
                     for i in range(k * self.seqlen, endINdex):
-                        if len(Q[i]) > 0:
+                        if len(Q[i]) > 0: # 做对的加110，做错的加0(不做处理),规范每一行的长度为200
                             Xindex = int(Q[i]) + int(A[i]) * self.n_question
                             question_sequence.append(int(Q[i]))
                             problem_sequence.append(int(P[i]))
@@ -160,7 +160,7 @@ class PID_DATA(object):
             dat = q_data[j]
             q_dataArray[j, :len(dat)] = dat
 
-        # 做对的加110，做错的加0,规范每一行的长度为200
+
         qa_dataArray = np.zeros((len(qa_data), self.seqlen))
         for j in range(len(qa_data)):
             dat = qa_data[j]
