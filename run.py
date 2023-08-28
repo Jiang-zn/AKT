@@ -5,8 +5,8 @@ import math
 from sklearn import metrics
 from utils import model_isPid_type
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
+# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.cuda.set_device(0)
 transpose_data_model = {'akt'}
 
 
@@ -123,8 +123,8 @@ def train(net, params, optimizer, q_data, qa_data, pid_data, label):
 
 def test(net, params, optimizer, q_data, qa_data, pid_data, label):
     # dataArray: [ array([[],[],..])] Shape: (3633, 200)
-    pid_flag, model_type = model_isPid_type(params.model)
     net.eval()
+    pid_flag, model_type = model_isPid_type(params.model)
     N = int(math.ceil(float(len(q_data)) / float(params.batch_size)))
     q_data = q_data.T  # Shape: (200,3633)
     qa_data = qa_data.T  # Shape: (200,3633)

@@ -8,8 +8,8 @@ import torch.nn.functional as F
 from enum import IntEnum
 import numpy as np
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
+# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.cuda.set_device(0)
 
 class Dim(IntEnum):
     batch = 0
@@ -54,7 +54,7 @@ class AKT(nn.Module):
         self.out = nn.Sequential(
             nn.Linear(d_model + embed_l, final_fc_dim), nn.ReLU(), nn.Dropout(self.dropout),
             nn.Linear(final_fc_dim, 256), nn.ReLU(), nn.Dropout(self.dropout),
-            nn.Linear(256, 1)
+            nn.Linear(256, 1),
         )
 
         self.reset()

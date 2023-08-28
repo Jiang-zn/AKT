@@ -11,10 +11,10 @@ import torch
 from load_data import DATA, PID_DATA
 from run import train, test
 from utils import try_makedirs, load_model, get_file_name_identifier
+import os
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-
+# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.cuda.set_device(0)
 # assert torch.cuda.is_available(), "No Cuda available, AssertionError"
 
 
@@ -123,14 +123,14 @@ if __name__ == '__main__':
     # Parse Arguments
     parser = argparse.ArgumentParser(description='Script to test KT')
     # Basic Parameters
-    parser.add_argument('--max_iter', type=int, default=300,
+    parser.add_argument('--max_iter', type=int, default=50,
                         help='number of iterations')
     parser.add_argument('--train_set', type=int, default=1)
     parser.add_argument('--seed', type=int, default=224, help='default seed')
 
     # Common parameters
     parser.add_argument('--optim', type=str, default='adam', help='Default Optimizer')
-    parser.add_argument('--batch_size', type=int, default=24, help='the batch size')
+    parser.add_argument('--batch_size', type=int, default=32, help='the batch size')
     parser.add_argument('--lr', type=float, default=1e-5, help='learning rate')
     parser.add_argument('--maxgradnorm', type=float, default=-1, help='maximum gradient norm')
     parser.add_argument('--final_fc_dim', type=int, default=512, help='hidden state dim for final fc layer')

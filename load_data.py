@@ -1,7 +1,9 @@
 # Code reused from https://github.com/jennyzhang0215/DKVMN.git
 import numpy as np
+import torch
 import math
-
+# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.cuda.set_device(0)
 
 class DATA(object):
     def __init__(self, n_question, seqlen, separate_char, name="data"):

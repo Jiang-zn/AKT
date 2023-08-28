@@ -1,12 +1,16 @@
 import os
 import torch
+import numpy as np
+import math
+from sklearn import metrics
 from akt import AKT
 
 # from sakt import SAKT
 # from dkvmn import DKVMN
 # from dkt import DKT
 # from dktplus import DKTPlus
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.cuda.set_device(0)
 
 
 def try_makedirs(path_):
