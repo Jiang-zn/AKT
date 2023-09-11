@@ -70,8 +70,8 @@ class DATA(object):
         f_data.close()
         # data: [[],[],[],...] <-- set_max_seqlen is used
         # convert data into ndarrays for better speed during training
-        q_dataArray = np.zeros((len(q_data), self.seqlen))
         # 这个切片操作取出了数组中第 j 行的前 len(dat) 列，并用 dat 填充
+        q_dataArray = np.zeros((len(q_data), self.seqlen))
         for j in range(len(q_data)):
             dat = q_data[j]
             q_dataArray[j, :len(dat)] = dat
