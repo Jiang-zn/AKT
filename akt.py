@@ -9,6 +9,7 @@ from enum import IntEnum
 import numpy as np
 
 # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 device = torch.cuda.set_device(0)
 
 class Dim(IntEnum):

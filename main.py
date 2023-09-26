@@ -15,6 +15,7 @@ import os
 
 # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 device = torch.cuda.set_device(0)
+
 # assert torch.cuda.is_available(), "No Cuda available, AssertionError"
 
 
