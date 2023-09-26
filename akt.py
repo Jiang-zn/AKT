@@ -98,14 +98,14 @@ class AKT(nn.Module):
 
         concat_q = torch.cat([d_output, q_embed_data], dim=-1)
         output = self.out(concat_q)
-        labels = target.reshape(-1)
-        m = nn.Sigmoid()
         preds = (output.reshape(-1))  # logit
+        labels = target.reshape(-1)
         mask = labels > -0.9
         masked_labels = labels[mask].float()
         masked_preds = preds[mask]
         loss = nn.BCEWithLogitsLoss(reduction='none')
         output = loss(masked_preds, masked_labels)
+        m = nn.Sigmoid()
         return output.sum() + c_reg_loss, m(preds), mask.sum()
 
 

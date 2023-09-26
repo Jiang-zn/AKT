@@ -148,7 +148,7 @@ if __name__ == '__main__':
     parser.add_argument('--l2', type=float, default=1e-5, help='l2 penalty for difficulty')
 
     # DKT-VMN Specific  Parameter
-    parser.add_argument('--q_embed_dim', type=int, default=50, help='question embedding dimensions')
+    parser.add_argument('--q_embed_dim', type=int, default=110, help='question embedding dimensions')
     parser.add_argument('--qa_embed_dim', type=int, default=256, help='answer and question embedding dimensions')
     parser.add_argument('--memory_size', type=int, default=50, help='memory size')
     parser.add_argument('--init_std', type=float, default=0.1, help='weight initialization std')
@@ -159,9 +159,9 @@ if __name__ == '__main__':
     parser.add_argument('--lamda_w2', type=float, default=0.1)
 
     # Datasets and Model
-    parser.add_argument('--model', type=str, default='akt_cid',
+    parser.add_argument('--model', type=str, default='akt_pid',
                         help="combination of akt/dkvmn/dkt, pid/cid separated by underscore '_'. For example tf_pid")
-    parser.add_argument('--dataset', type=str, default="assist2015")
+    parser.add_argument('--dataset', type=str, default="assist2009_pid")
 
     params = parser.parse_args()
     dataset = params.dataset
