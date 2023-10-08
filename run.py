@@ -114,14 +114,9 @@ def train(net, params, optimizer, q_data, qa_data, pid_data, label):
 
     all_pred = np.concatenate(pred_list, axis=0)
     all_target = np.concatenate(target_list, axis=0)
-    print('all_pred', all_pred)
-    print('all_target', all_target)
     loss = binaryEntropy(all_target, all_pred)
-    print('loss', loss)
     auc = compute_auc(all_target, all_pred)
-    print('auc', auc)
     accuracy = compute_accuracy(all_target, all_pred)
-    print('accuracy', accuracy)
 
     return loss, accuracy, auc
 
