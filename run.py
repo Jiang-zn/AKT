@@ -117,6 +117,7 @@ def train(net, params, optimizer, q_data, qa_data, pid_data, label):
     loss = binaryEntropy(all_target, all_pred)
     auc = compute_auc(all_target, all_pred)
     accuracy = compute_accuracy(all_target, all_pred)
+    print('accuracy', accuracy)
 
     return loss, accuracy, auc
 
